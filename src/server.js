@@ -306,9 +306,9 @@ app.post('/webauthn/login/verify', async (req, res) => {
       expectedChallenge,
       expectedOrigin: ORIGIN,
       expectedRPID: RP_ID,
-      credential: {
-        id: cred.credential_id,
-        publicKey: isoBase64URL.toBuffer(cred.public_key),
+      authenticator: {
+        credentialID: cred.credential_id,
+        credentialPublicKey: isoBase64URL.toBuffer(cred.public_key),
         counter: cred.counter,
         transports: cred.transports ? JSON.parse(cred.transports) : undefined,
       },
