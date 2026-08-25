@@ -1,0 +1,21 @@
+{
+  "name": "1password-practice",
+  "version": "1.0.0",
+  "description": "A dummy account playground for practicing 1Password signup, password change, TOTP 2FA, and passkey flows.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@simplewebauthn/browser": "^13.3.0",
+    "@simplewebauthn/server": "^10.0.1",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "connect-sqlite3": "^0.9.15",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "otplib": "^12.0.1",
+    "qrcode": "^1.5.4"
+  }
+}

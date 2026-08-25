@@ -1,0 +1,20 @@
+<%- include('partials/head', { title: 'Create a dummy account' }) %>
+
+<div class="card card-narrow">
+  <h1>Create a dummy account</h1>
+  <%- include('partials/flash') %>
+  <form method="POST" action="/signup" autocomplete="on">
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8">
+
+    <button class="btn btn-primary" type="submit">Create account</button>
+  </form>
+  <p class="hint">Tip: click into the password field and let 1Password suggest a strong password,
+    then save the login when prompted after submitting.</p>
+  <p><a href="/login">Already have a practice account? Log in</a></p>
+</div>
+
+<%- include('partials/foot') %>

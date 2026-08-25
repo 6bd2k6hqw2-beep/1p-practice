@@ -1,0 +1,20 @@
+<%- include('partials/head', { title: 'Set up 2FA' }) %>
+
+<div class="card card-narrow">
+  <h1>Set up two-factor authentication</h1>
+  <%- include('partials/flash') %>
+  <p>Open the login in 1Password, click into the one-time password field, and scan this QR code
+    (or paste the setup key manually).</p>
+  <img class="qr" src="<%= qrDataUrl %>" alt="2FA QR code" width="220" height="220">
+  <p class="hint">Setup key: <code><%= secret %></code></p>
+
+  <form method="POST" action="/account/2fa/setup">
+    <label for="token">Enter the 6-digit code 1Password just generated</label>
+    <input id="token" name="token" type="text" inputmode="numeric" pattern="[0-9]*"
+           autocomplete="one-time-code" maxlength="6" required autofocus>
+    <button class="btn btn-primary" type="submit">Confirm and enable 2FA</button>
+  </form>
+  <p><a href="/account">Cancel</a></p>
+</div>
+
+<%- include('partials/foot') %>

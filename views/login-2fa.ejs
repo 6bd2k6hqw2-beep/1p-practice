@@ -1,0 +1,15 @@
+<%- include('partials/head', { title: 'Enter your 2FA code' }) %>
+
+<div class="card card-narrow">
+  <h1>Enter your 2FA code</h1>
+  <%- include('partials/flash') %>
+  <p>Open 1Password, find this login, and copy the current one-time code.</p>
+  <form method="POST" action="/login/2fa" autocomplete="on">
+    <label for="token">6-digit code</label>
+    <input id="token" name="token" type="text" inputmode="numeric" pattern="[0-9]*"
+           autocomplete="one-time-code" maxlength="6" required autofocus>
+    <button class="btn btn-primary" type="submit">Verify</button>
+  </form>
+</div>
+
+<%- include('partials/foot') %>

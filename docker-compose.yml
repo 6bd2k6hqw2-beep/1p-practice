@@ -1,0 +1,22 @@
+services:
+  1p-practice:
+    build: .
+    container_name: 1p-practice
+    restart: unless-stopped
+    environment:
+      - RP_ID=1p-practice.southrock.ie
+      - ORIGIN=https://1p-practice.southrock.ie
+      - RP_NAME=1Password Practice
+      - SESSION_SECRET=${SESSION_SECRET:?set a random long string in .env}
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - ./data:/app/data
+    networks:
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    # change this to match whatever external network your Traefik container
+    # publishes (e.g. "proxy", "traefik", "t3_proxy")

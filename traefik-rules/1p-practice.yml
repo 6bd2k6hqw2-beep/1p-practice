@@ -1,0 +1,24 @@
+# Drop this file in your Traefik rules directory, e.g.:
+#   $DOCKERDIR/appdata/traefik3/rules/$HOSTNAME/1p-practice.yml
+#
+# It's on the external entrypoint deliberately and NOT behind tinyauth —
+# the whole point is that anyone (you, on any device) can reach it over the
+# open internet and go through a normal-looking signup/login flow.
+# Adjust the "service.loadBalancer.servers.url" if 1p-practice isn't
+# reachable from Traefik on the docker network at that hostname:port.
+
+http:
+  routers:
+    1p-practice:
+      rule: "Host(`1p-practice.southrock.ie`)"
+      entryPoints:
+        - websecure-external
+      service: 1p-practice
+      tls:
+        certResolver: cloudflare
+
+  services:
+    1p-practice:
+      loadBalancer:
+        servers:
+          - url: "http://1p-practice:3000"

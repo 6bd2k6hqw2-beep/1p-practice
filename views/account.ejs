@@ -1,0 +1,95 @@
+<%- include('partials/head', { title: 'Your account' }) %>
+
+<div class="card">
+  <h1>Hi, <%= user.username %> 👋</h1>
+  <%- include('partials/flash') %>
+  <p class="hint">Account created <%= user.created_at %> UTC. This is a dummy account — use the
+    reset button at the bottom whenever you want a clean start.</p>
+
+  <div class="section">
+    <h2>Password</h2>
+    <p>Practice updating your saved login and confirming 1Password offers to update it.</p>
+    <a class="btn" href="/account/password">Change password</a>
+  </div>
+
+  <div class="section">
+    <h2>Two-factor authentication</h2>
+    <% if (user.totp_enabled) { %>
+      <p>✅ Enabled — logins will ask for a code from 1Password's authenticator.</p>
+      <form method="POST" action="/account/2fa/disable">
+        <button class="btn btn-danger" type="submit">Disable 2FA</button>
+      </form>
+    <% } else { %>
+      <p>Not set up yet.</p>
+      <a class="btn btn-primary" href="/account/2fa/setup">Set up 2FA</a>
+    <% } %>
+  </div>
+
+  <div class="section">
+    <h2>Passkeys</h2>
+    <% if (credentials.length) { %>
+      <ul class="list">
+        <% credentials.forEach(function(c) { %>
+          <li>
+            <%= c.nickname %> — added <%= c.created_at %> UTC
+            <form method="POST" action="/account/passkey/<%= c.id %>/delete" class="inline">
+              <button class="btn btn-small btn-danger" type="submit">Remove</button>
+            </form>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p>No passkeys saved yet.</p>
+    <% } %>
+    <button class="btn btn-primary" id="add-passkey-btn">Add a passkey</button>
+    <p id="passkey-status" class="hint"></p>
+  </div>
+
+  <div class="section danger-zone">
+    <h2>Reset</h2>
+    <p>Delete this dummy account and everything on it, so you can start the exercise over.</p>
+    <form method="POST" action="/account/reset" onsubmit="return confirm('Delete this practice account? This cannot be undone.');">
+      <button class="btn btn-danger" type="submit">Delete this practice account</button>
+    </form>
+  </div>
+
+  <form method="POST" action="/logout" class="inline">
+    <button class="btn" type="submit">Log out</button>
+  </form>
+</div>
+
+<script src="/vendor/simplewebauthn/index.umd.min.js"></script>
+<script>
+  const statusEl = document.getElementById('passkey-status');
+  document.getElementById('add-passkey-btn').addEventListener('click', async () => {
+    if (!SimpleWebAuthnBrowser.browserSupportsWebAuthn()) {
+      statusEl.textContent = 'This browser does not support passkeys.';
+      return;
+    }
+    try {
+      statusEl.textContent = 'Requesting options…';
+      const optsRes = await fetch('/webauthn/register/options', { method: 'POST' });
+      const options = await optsRes.json();
+
+      statusEl.textContent = 'Waiting for 1Password…';
+      const regResp = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: options });
+
+      statusEl.textContent = 'Saving…';
+      const verifyRes = await fetch('/webauthn/register/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(regResp),
+      });
+      const result = await verifyRes.json();
+      if (result.verified) {
+        window.location.reload();
+      } else {
+        statusEl.textContent = 'Could not save that passkey. ' + (result.error || '');
+      }
+    } catch (err) {
+      statusEl.textContent = 'Passkey setup was cancelled or failed: ' + err.message;
+    }
+  });
+</script>
+
+<%- include('partials/foot') %>

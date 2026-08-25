@@ -1,0 +1,46 @@
+<%- include('partials/head', { title: 'Log in with a passkey' }) %>
+
+<div class="card card-narrow">
+  <h1>Log in with a passkey</h1>
+  <%- include('partials/flash') %>
+  <p>Click below, then choose the passkey saved in 1Password when your browser prompts you.</p>
+  <button class="btn btn-primary" id="passkey-login-btn">Continue with passkey</button>
+  <p id="passkey-status" class="hint"></p>
+  <p><a href="/login">Use a password instead</a></p>
+</div>
+
+<script src="/vendor/simplewebauthn/index.umd.min.js"></script>
+<script>
+  const statusEl = document.getElementById('passkey-status');
+  document.getElementById('passkey-login-btn').addEventListener('click', async () => {
+    if (!SimpleWebAuthnBrowser.browserSupportsWebAuthn()) {
+      statusEl.textContent = 'This browser does not support passkeys.';
+      return;
+    }
+    try {
+      statusEl.textContent = 'Requesting options…';
+      const optsRes = await fetch('/webauthn/login/options', { method: 'POST' });
+      const options = await optsRes.json();
+
+      statusEl.textContent = 'Waiting for 1Password…';
+      const authResp = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: options });
+
+      statusEl.textContent = 'Verifying…';
+      const verifyRes = await fetch('/webauthn/login/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(authResp),
+      });
+      const result = await verifyRes.json();
+      if (result.verified) {
+        window.location.href = '/account';
+      } else {
+        statusEl.textContent = 'Could not verify that passkey. ' + (result.error || '');
+      }
+    } catch (err) {
+      statusEl.textContent = 'Passkey login was cancelled or failed: ' + err.message;
+    }
+  });
+</script>
+
+<%- include('partials/foot') %>
