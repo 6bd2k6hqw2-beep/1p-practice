@@ -42,13 +42,39 @@ local dummy data in a SQLite file — nothing is a real identity.
 
 ## Deploy
 
+There are two ways to get the image onto your server:
+
+**Option A — pull a prebuilt image (recommended).** A GitHub Actions
+workflow (`.github/workflows/build.yml`) builds this repo into a
+`linux/amd64` + `linux/arm64` Docker image and publishes it to GitHub
+Container Registry every time you push to `main`. Once that's run at least
+once:
+
+1. In `docker-compose.yml`, set `image:` to your actual repo path, e.g.
+   `ghcr.io/yourusername/1p-practice:latest`.
+2. The package is private by default. Either make it public (repo → Packages
+   → the package → Package settings → Change visibility), or run
+   `docker login ghcr.io -u yourusername` with a
+   [personal access token](https://github.com/settings/tokens) that has
+   `read:packages` scope before pulling.
+3. Then:
+   ```bash
+   cd 1p-practice
+   cp .env.example .env   # then edit SESSION_SECRET
+   docker compose up -d
+   ```
+   This just pulls and runs the image — no build tools needed on the server.
+
+**Option B — build it locally on the server instead.** In
+`docker-compose.yml`, comment out the `image:` line and uncomment
+`build: .`, then:
 ```bash
 cd 1p-practice
 cp .env.example .env   # then edit SESSION_SECRET
 docker compose up -d --build
 ```
 
-The container writes its SQLite database to `./data` (bind-mounted), so
+Either way, the container writes its SQLite database to `./data` (bind-mounted), so
 restarts don't wipe accounts. Anyone who wants a clean slate can just use the
 in-app "Delete this practice account" button — there's no shared data between
 different dummy accounts.
