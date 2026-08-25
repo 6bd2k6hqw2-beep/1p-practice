@@ -35,9 +35,9 @@ local dummy data in a SQLite file — nothing is a real identity.
    ```
    $DOCKERDIR/appdata/traefik3/rules/$HOSTNAME/app-1ppractice.yml
    ```
-   It's deliberately on `websecure-external` and **not** behind
-   `chain-tinyauth@file` — the whole point is a normal public-looking signup
-   flow. Check the `certResolver` name against your other working rule files.
+   It's deliberately on `websecure-external` with no auth middleware — the
+   whole point is a normal public-looking signup flow. Check the
+   `certResolver` name against your other working rule files.
 
 ## Deploy
 
