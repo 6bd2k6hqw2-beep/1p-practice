@@ -1,7 +1,7 @@
 http:
   routers:
     1ppractice-rtr:
-      rule: "Host(`1ppractice.{{env "DOMAINNAME_1"}}`)"
+      rule: "Host(`1ppractice.{{env "DOMAINNAME_1"}}`)" 
       entryPoints:
         - websecure-external
 #        - websecure-internal
