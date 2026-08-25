@@ -181,8 +181,8 @@ app.post('/account/password', requireAuth, async (req, res) => {
   const hash = await bcrypt.hash(new_password, 12);
   db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, user.id);
   db.prepare('INSERT INTO password_history (user_id) VALUES (?)').run(user.id);
-  flash(req, 'Password changed. Practice saving the update in 1Password when prompted.', 'success');
-  res.redirect('/account');
+  flash(req, 'Password changed. Check for the "Update login" banner from 1Password now — if you miss it, see the recovery steps below.', 'success');
+  res.redirect('/account/password');
 });
 
 // ---------- TOTP 2FA setup ----------

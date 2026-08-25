@@ -86,8 +86,14 @@ account" button — there's no shared data between different dummy accounts.
 3. Log out and back in using the code 1Password generates.
 4. Add a passkey from the account page, then log out and use
    "log in with a passkey" — no password needed.
-5. Change the password and confirm 1Password offers to update the saved
-   login.
+5. Change the password and watch for 1Password's "update login" banner —
+   click it to save the new password.
+6. **Practice the recovery too:** change the password again, but this time
+   dismiss or ignore 1Password's update prompt on purpose. Log out and try
+   to log back in — the autofilled (old) password will fail. The
+   change-password page has step-by-step instructions for manually editing
+   the saved 1Password entry to match, which is the fix you'd need in real
+   life if you ever miss that prompt.
 
 ## Notes / things you may want to change
 
