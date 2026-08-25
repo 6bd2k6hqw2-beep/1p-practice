@@ -1,28 +1,27 @@
 services:
-  1p-practice:
-    # Pulls the image GitHub Actions builds and publishes to ghcr.io on every
-    # push to main. Replace GITHUB_USERNAME/1p-practice with your actual repo
-    # path (lowercase), e.g. ghcr.io/janedoe/1p-practice:latest.
+  1ppractice:
+    # This app is a practice/demo environment for 1Password's browser
+    # extension (signup, password change, TOTP 2FA, WebAuthn passkeys).
+    # NOTE: .env variable names below deliberately omit any leading digit —
+    # shells and Docker Compose can't interpolate a variable name that
+    # starts with a number.
+    image: ghcr.io/GITHUB_USERNAME/1p-practice:latest
     # If you'd rather build it yourself on this server instead of pulling,
     # comment the "image" line out and uncomment "build: ." below.
-    image: ghcr.io/GITHUB_USERNAME/1p-practice:latest
     # build: .
-    container_name: 1p-practice
+    container_name: 1ppractice
     restart: unless-stopped
-    environment:
-      - RP_ID=1p-practice.southrock.ie
-      - ORIGIN=https://1p-practice.southrock.ie
-      - RP_NAME=1Password Practice
-      - SESSION_SECRET=${SESSION_SECRET:?set a random long string in .env}
-      - NODE_ENV=production
-      - PORT=3000
-    volumes:
-      - ./data:/app/data
     networks:
-      - traefik-network
-
-networks:
-  traefik-network:
-    external: true
-    # change this to match whatever external network your Traefik container
-    # publishes (e.g. "proxy", "traefik", "t3_proxy")
+      - default
+    ports:
+      - "$PPRACTICE_PORT:3000" # set your preferred host port in .env
+    environment: # set every variable in curly braces below in your .env file
+      - PUID=$PUID
+      - PGID=$PGID
+      - RP_ID=1ppractice.${DOMAINNAME_1} # e.g. DOMAINNAME_1=mydomain.com
+      - ORIGIN=https://1ppractice.${DOMAINNAME_1}
+      - SESSION_SECRET=${PPRACTICE_SESSION_SECRET:?set a random long string in .env}
+      - NODE_ENV=production
+      - PORT=3000 # DO NOT ALTER — internal container port; customise via PPRACTICE_PORT above
+    volumes:
+      - $PPRACTICE_APP_DATA_DIR:/app/data # e.g. PPRACTICE_APP_DATA_DIR=/home/user/docker/appdata/1ppractice

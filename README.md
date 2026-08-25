@@ -16,29 +16,28 @@ local dummy data in a SQLite file — nothing is a real identity.
   WebAuthn ceremonies, so 1Password's "save a passkey" / "use a passkey"
   prompts show up genuinely. This is why it needs to run on a real public
   HTTPS domain rather than plain HTTP or an IP address.
+- The container starts as root just long enough to create a `node` user at
+  your requested `PUID`/`PGID` and `chown` the data folder, then drops
+  privileges via `su-exec` before running the app — same pattern
+  linuxserver.io images use, so no manual `chown` on the host is needed.
 
 ## Before you deploy
 
-1. **Pick and DNS the subdomain.** Everything below assumes
-   `1p-practice.southrock.ie`. If you use a different name, update it in
-   `docker-compose.yml` (`RP_ID` / `ORIGIN`) and `traefik-rules/1p-practice.yml`
-   (the `Host()` rule and service URL) — they must all match exactly, or
-   passkeys will fail to verify.
-2. **Set a session secret.** Copy `.env.example` to `.env` and fill in
-   `SESSION_SECRET` with `openssl rand -hex 32`.
-3. **Check the Traefik network name.** `docker-compose.yml` has a
-   `traefik-network` placeholder under `networks: external:` — set it to
-   whatever external network your Traefik container actually publishes.
-4. **Check the cert resolver name.** `traefik-rules/1p-practice.yml` assumes
-   a certResolver called `cloudflare`. Rename it to match your actual
-   Traefik config if it's called something else.
-5. **Drop the rules file in place**, matching the pattern you already use:
+1. **Copy `.env.example` to `.env`** and fill in the variables — see the
+   comments in that file for what each one does. Variable names deliberately
+   avoid a leading digit (e.g. `PPRACTICE_PORT`, not `1PPRACTICE_PORT`) —
+   shells and Compose can't interpolate a name starting with a number.
+2. **`PUID`/`PGID`/`DOMAINNAME_1`** — if you already set these globally for
+   your other containers, you don't need to repeat them in this app's `.env`.
+   If this compose file is standalone, set them there.
+3. **Drop the Traefik rules file in place**, matching the pattern you
+   already use, e.g.:
    ```
-   $DOCKERDIR/appdata/traefik3/rules/$HOSTNAME/1p-practice.yml
+   $DOCKERDIR/appdata/traefik3/rules/$HOSTNAME/app-1ppractice.yml
    ```
    It's deliberately on `websecure-external` and **not** behind
    `chain-tinyauth@file` — the whole point is a normal public-looking signup
-   flow.
+   flow. Check the `certResolver` name against your other working rule files.
 
 ## Deploy
 
@@ -60,7 +59,7 @@ once:
 3. Then:
    ```bash
    cd 1p-practice
-   cp .env.example .env   # then edit SESSION_SECRET
+   cp .env.example .env   # then fill in the values
    docker compose up -d
    ```
    This just pulls and runs the image — no build tools needed on the server.
@@ -70,14 +69,14 @@ once:
 `build: .`, then:
 ```bash
 cd 1p-practice
-cp .env.example .env   # then edit SESSION_SECRET
+cp .env.example .env   # then fill in the values
 docker compose up -d --build
 ```
 
-Either way, the container writes its SQLite database to `./data` (bind-mounted), so
-restarts don't wipe accounts. Anyone who wants a clean slate can just use the
-in-app "Delete this practice account" button — there's no shared data between
-different dummy accounts.
+Either way, the container writes its SQLite database to whatever host path
+you set as `PPRACTICE_APP_DATA_DIR`, so restarts don't wipe accounts. Anyone
+who wants a clean slate can just use the in-app "Delete this practice
+account" button — there's no shared data between different dummy accounts.
 
 ## What to actually practice
 

@@ -1,0 +1,19 @@
+http:
+  routers:
+    1ppractice-rtr:
+      rule: "Host(`1ppractice.{{env "DOMAINNAME_1"}}`)"
+      entryPoints:
+        - websecure-external
+#        - websecure-internal
+#      middlewares:
+#        - chain-oauth
+      service: 1ppractice-svc
+      tls:
+        certResolver: cloudflare
+#        certResolver: dns-cloudflare
+#        options: tls-opts@file
+  services:
+    1ppractice-svc:
+      loadBalancer:
+        servers:
+          - url: "http://{{env "PPRACTICE_SERVER_IP"}}:{{env "PPRACTICE_PORT"}}"
