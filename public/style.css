@@ -1,12 +1,98 @@
+/* ---------- theme tokens ---------- */
+/* Dark is the default (no attribute / JS disabled with a dark system pref
+   still falls through to this). All pairings below are checked against
+   WCAG AA (4.5:1 for text, 3:1 for large/UI elements). */
 :root {
   --bg: #0f1720;
   --card: #17212b;
   --text: #e8edf2;
   --muted: #93a3b3;
-  --accent: #3b82f6;
-  --danger: #ef4444;
+  --link: #60a5fa;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --danger: #f87171;
   --border: #2a3644;
+  --input-bg: #0b1218;
+  --code-bg: #0b1218;
+  --qr-bg: #ffffff;
+
+  --flash-error-bg: #3a272f;
+  --flash-error-text: #fca5a5;
+  --flash-error-border: rgba(239, 68, 68, 0.35);
+  --flash-success-bg: #193b33;
+  --flash-success-text: #86efac;
+  --flash-success-border: rgba(34, 197, 94, 0.35);
+  --flash-info-bg: #1d314b;
+  --flash-info-text: #93c5fd;
+  --flash-info-border: rgba(59, 130, 246, 0.35);
+
+  --badge-bg: #2f2a1d;
+  --badge-text: #fbbf24;
+  --badge-border: rgba(251, 191, 36, 0.35);
 }
+
+:root[data-theme="light"] {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --text: #1a2530;
+  --muted: #55606c;
+  --link: #1d4ed8;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --danger: #b91c1c;
+  --border: #d8dee5;
+  --input-bg: #ffffff;
+  --code-bg: #eef2f6;
+  --qr-bg: #ffffff;
+
+  --flash-error-bg: #fce9e9;
+  --flash-error-text: #b91c1c;
+  --flash-error-border: rgba(220, 38, 38, 0.25);
+  --flash-success-bg: #e8f6ed;
+  --flash-success-text: #14532d;
+  --flash-success-border: rgba(22, 163, 74, 0.25);
+  --flash-info-bg: #e9effd;
+  --flash-info-text: #1d4ed8;
+  --flash-info-border: rgba(37, 99, 235, 0.25);
+
+  --badge-bg: #f5ecdd;
+  --badge-text: #92400e;
+  --badge-border: rgba(245, 158, 11, 0.35);
+}
+
+/* Fallback for the rare case JS is disabled: at least respect system
+   preference instead of forcing dark. Manual toggle always wins once JS
+   runs and sets data-theme explicitly. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --text: #1a2530;
+    --muted: #55606c;
+    --link: #1d4ed8;
+    --accent: #2563eb;
+    --accent-text: #ffffff;
+    --danger: #b91c1c;
+    --border: #d8dee5;
+    --input-bg: #ffffff;
+    --code-bg: #eef2f6;
+    --qr-bg: #ffffff;
+    --flash-error-bg: #fce9e9;
+    --flash-error-text: #b91c1c;
+    --flash-error-border: rgba(220, 38, 38, 0.25);
+    --flash-success-bg: #e8f6ed;
+    --flash-success-text: #14532d;
+    --flash-success-border: rgba(22, 163, 74, 0.25);
+    --flash-info-bg: #e9effd;
+    --flash-info-text: #1d4ed8;
+    --flash-info-border: rgba(37, 99, 235, 0.25);
+    --badge-bg: #f5ecdd;
+    --badge-text: #92400e;
+    --badge-border: rgba(245, 158, 11, 0.35);
+  }
+}
+
+/* ---------- base ---------- */
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -14,6 +100,10 @@ body {
   background: var(--bg);
   color: var(--text);
 }
+a { color: var(--link); }
+a:visited { color: var(--link); }
+a:hover { opacity: 0.85; }
+
 .topbar {
   display: flex;
   align-items: center;
@@ -23,15 +113,32 @@ body {
   flex-wrap: wrap;
   gap: 8px;
 }
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .brand { color: var(--text); text-decoration: none; font-weight: 700; font-size: 18px; }
 .badge {
   font-size: 12px;
-  color: #fbbf24;
-  background: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: var(--badge-text);
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-border);
   padding: 4px 10px;
   border-radius: 999px;
 }
+.theme-toggle {
+  font-size: 12px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.theme-toggle:hover { opacity: 0.85; }
+
 .wrap { max-width: 640px; margin: 0 auto; padding: 24px 16px 60px; }
 .card {
   background: var(--card);
@@ -45,14 +152,19 @@ h2 { font-size: 17px; margin-bottom: 6px; }
 .section { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px; }
 .danger-zone { }
 p { color: var(--muted); line-height: 1.5; }
-code { background: #0b1218; padding: 2px 6px; border-radius: 4px; color: var(--text); }
+code {
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text);
+}
 label { display: block; margin-top: 14px; margin-bottom: 4px; font-size: 14px; color: var(--muted); }
 input[type="text"], input[type="password"] {
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: #0b1218;
+  background: var(--input-bg);
   color: var(--text);
   font-size: 15px;
 }
@@ -68,17 +180,17 @@ input[type="text"], input[type="password"] {
   font-size: 14px;
   margin-top: 16px;
 }
-.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 .btn-danger { background: transparent; border-color: var(--danger); color: var(--danger); }
 .btn-small { padding: 4px 10px; font-size: 12px; margin-top: 0; }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
 .inline { display: inline-block; margin-left: 8px; }
 .hint { font-size: 13px; }
 .flash { padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 14px; }
-.flash-error { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
-.flash-success { background: rgba(34,197,94,0.12); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
-.flash-info { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
-.qr { display: block; margin: 12px auto; background: white; padding: 10px; border-radius: 8px; }
+.flash-error { background: var(--flash-error-bg); color: var(--flash-error-text); border: 1px solid var(--flash-error-border); }
+.flash-success { background: var(--flash-success-bg); color: var(--flash-success-text); border: 1px solid var(--flash-success-border); }
+.flash-info { background: var(--flash-info-bg); color: var(--flash-info-text); border: 1px solid var(--flash-info-border); }
+.qr { display: block; margin: 12px auto; background: var(--qr-bg); padding: 10px; border-radius: 8px; }
 .list { list-style: none; padding: 0; }
 .list li { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
 ol { color: var(--muted); }

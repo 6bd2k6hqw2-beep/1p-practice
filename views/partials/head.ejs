@@ -4,11 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof title !== 'undefined' ? title : '1Password Practice' %></title>
+  <script>
+    // Runs before the stylesheet paints anything, so there's no flash of
+    // the wrong theme. Manual choice (localStorage) wins over system
+    // preference; system preference wins over the dark default.
+    (function () {
+      var stored = localStorage.getItem('theme');
+      var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/">🔐 1Password Practice</a>
-    <span class="badge">Dummy accounts only — nothing here is real</span>
+    <div class="topbar-right">
+      <span class="badge">Dummy accounts only — nothing here is real</span>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme"></button>
+    </div>
   </header>
+  <script>
+    (function () {
+      var btn = document.getElementById('theme-toggle');
+      function render() {
+        var theme = document.documentElement.getAttribute('data-theme');
+        btn.textContent = theme === 'light' ? '🌙 Dark mode' : '☀️ Light mode';
+        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+      }
+      render();
+      btn.addEventListener('click', function () {
+        var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        render();
+      });
+    })();
+  </script>
   <main class="wrap">
