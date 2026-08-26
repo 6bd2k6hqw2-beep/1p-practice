@@ -4,7 +4,8 @@
   "description": "A dummy account playground for practicing 1Password signup, password change, TOTP 2FA, and passkey flows.",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "reset-all": "node src/admin-reset-all.js"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",

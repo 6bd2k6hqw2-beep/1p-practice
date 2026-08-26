@@ -7,6 +7,11 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 const db = new Database(path.join(dataDir, 'practice.db'));
 db.pragma('journal_mode = WAL');
+// SQLite ignores "ON DELETE CASCADE" in the schema below unless foreign key
+// enforcement is turned on per-connection — without this, deleting a user
+// silently leaves orphaned rows in credentials/password_history instead of
+// cascading.
+db.pragma('foreign_keys = ON');
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (

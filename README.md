@@ -95,6 +95,27 @@ account" button — there's no shared data between different dummy accounts.
    the saved 1Password entry to match, which is the fix you'd need in real
    life if you ever miss that prompt.
 
+## Wiping accounts you're locked out of
+
+The in-app "Delete this practice account" button (on `/account`) requires
+being logged in, which doesn't help if you've deliberately broken your own
+login (e.g. dismissed 1Password's password-update prompt and can no longer
+log in with the autofilled value, or fumbled a 2FA/passkey setup). For that,
+run this on the server itself:
+
+```bash
+docker exec 1ppractice node src/admin-reset-all.js --yes
+```
+
+This wipes **every** practice account on the instance, not just one — it's
+a blunt instrument for getting back to a clean slate, not a per-account
+tool. Leave off `--yes` first to see a count of what would be deleted
+without actually touching anything.
+
+This is deliberately a server-side script rather than a web route, even
+behind a secret — this app is meant to be reachable from the open internet,
+so it doesn't get an HTTP endpoint that can delete everyone's data.
+
 ## Notes / things you may want to change
 
 - Sessions are stored in SQLite via `connect-sqlite3` (4 hour expiry).
