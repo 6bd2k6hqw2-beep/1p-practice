@@ -7,6 +7,19 @@
     reset button at the bottom whenever you want a clean start.</p>
 
   <div class="section">
+    <h2>Tutorial progress</h2>
+    <ul class="lesson-list">
+      <% lessons.forEach(function(l) { %>
+        <li class="<%= l.complete ? 'lesson-done' : '' %>">
+          <span class="lesson-check"><%= l.complete ? '✅' : '▫️' %></span>
+          <a href="<%= l.href %>">Lesson <%= l.number %>: <%= l.title %></a>
+          <span class="hint lesson-short"><%= l.short %></span>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+
+  <div class="section">
     <h2>Password</h2>
     <p>Practice updating your saved login and confirming 1Password offers to update it.</p>
     <a class="btn" href="/account/password">Change password</a>
@@ -23,6 +36,16 @@
       <p>Not set up yet.</p>
       <a class="btn btn-primary" href="/account/2fa/setup">Set up 2FA</a>
     <% } %>
+  </div>
+
+  <div class="section">
+    <h2>Google login</h2>
+    <% if (user.google_sub) { %>
+      <p>✅ Connected as <%= user.google_email || user.google_sub %>.</p>
+    <% } else { %>
+      <p>Not connected yet.</p>
+    <% } %>
+    <a class="btn" href="/account/google">Manage Google login</a>
   </div>
 
   <div class="section">

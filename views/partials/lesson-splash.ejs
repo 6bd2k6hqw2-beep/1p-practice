@@ -1,0 +1,13 @@
+<% if (typeof lesson !== 'undefined' && lesson) { %>
+  <div class="lesson-splash">
+    <p class="lesson-tag">Lesson <%= lesson.number %> of 4</p>
+    <h2 class="lesson-title"><%= lesson.title %></h2>
+    <p><%= lesson.blurb %></p>
+    <% if (typeof lessonSteps !== 'undefined' && lessonSteps) { %>
+      <details class="lesson-steps">
+        <summary>Show me the steps</summary>
+        <%- lessonSteps %>
+      </details>
+    <% } %>
+  </div>
+<% } %>

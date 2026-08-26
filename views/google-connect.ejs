@@ -1,0 +1,52 @@
+<%- include('partials/head', { title: 'Connect a Google login' }) %>
+
+<div class="card card-narrow">
+  <%- include('partials/lesson-splash', { lesson: typeof lesson !== 'undefined' ? lesson : null, lessonSteps: `
+    <ol>
+      <li>Click "Connect Google account" below.</li>
+      <li>You'll be sent to a real Google sign-in screen — sign in with any
+        Google account you're comfortable using for this (a throwaway one
+        is fine).</li>
+      <li>Google sends you back here once you approve access. Notice that
+        1Password doesn't play a direct role in this handoff — it's a
+        different kind of login entirely.</li>
+    </ol>
+  ` }) %>
+  <% if (typeof lesson === 'undefined' || !lesson) { %><h1>Connect a Google login</h1><% } %>
+  <%- include('partials/flash') %>
+
+  <% if (configured) { %>
+    <% if (user.google_sub) { %>
+      <p>✅ Connected as <strong><%= user.google_email || user.google_sub %></strong>.</p>
+      <form method="POST" action="/account/google/disconnect">
+        <button class="btn btn-danger" type="submit">Disconnect Google</button>
+      </form>
+    <% } else { %>
+      <p>Not connected yet.</p>
+      <a class="btn btn-primary" href="/account/google/connect">Connect Google account</a>
+    <% } %>
+  <% } else { %>
+    <p>This instance hasn't been set up for Google login yet. That's a
+      one-time thing the person running this server needs to do — it needs
+      real credentials from Google, not something this app can generate for
+      itself.</p>
+    <div class="section">
+      <h2>Setup (for the server admin)</h2>
+      <ol>
+        <li>Go to the
+          <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console credentials page</a>
+          and create an OAuth 2.0 Client ID (application type: "Web
+          application").</li>
+        <li>Add this exact URL as an authorized redirect URI:
+          <br><code><%= redirectUri %></code></li>
+        <li>Set <code>GOOGLE_CLIENT_ID</code> and
+          <code>GOOGLE_CLIENT_SECRET</code> in this app's <code>.env</code>
+          to the values Google gives you, then restart the container.</li>
+      </ol>
+    </div>
+  <% } %>
+
+  <p><a href="/account">Back to account</a></p>
+</div>
+
+<%- include('partials/foot') %>

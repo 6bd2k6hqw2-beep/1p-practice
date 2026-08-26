@@ -2,9 +2,9 @@
 
 <div class="card">
   <h1>Practice creating &amp; managing a login</h1>
-  <p>This is a sandbox for getting comfortable with 1Password's browser extension: saving a new
-    login, generating and storing a strong password, setting up two-factor authentication with
-    1Password's built-in authenticator, and saving a passkey.</p>
+  <p>This is a four-lesson sandbox for getting comfortable with 1Password's browser extension:
+    saving a new login, changing a password without losing sync with your password manager,
+    setting up two-factor authentication, and connecting a "Sign in with Google" style login.</p>
   <p><strong>Nothing here is a real account.</strong> Create as many dummy logins as you like and
     reset them whenever you want.</p>
 
@@ -12,20 +12,28 @@
     <a class="btn btn-primary" href="/account">Go to your account</a>
   <% } else { %>
     <div class="btn-row">
-      <a class="btn btn-primary" href="/signup">Create a dummy account</a>
+      <a class="btn btn-primary" href="/signup">Start Lesson 1: Create a login</a>
       <a class="btn" href="/login">Log in</a>
       <a class="btn" href="/login/passkey">Log in with a passkey</a>
     </div>
   <% } %>
 
-  <h2>What to try</h2>
-  <ol>
-    <li>Sign up — let 1Password suggest and save a strong password.</li>
-    <li>Turn on 2FA — scan the QR code with 1Password and save the one-time code field.</li>
-    <li>Log out, then log back in using the code 1Password generates for you.</li>
-    <li>Save a passkey and use it to log in without a password at all.</li>
-    <li>Change your password and confirm 1Password offers to update the saved login.</li>
-  </ol>
+  <h2>The four lessons</h2>
+  <ul class="lesson-list">
+    <% lessons.forEach(function(l) { %>
+      <li class="<%= l.complete ? 'lesson-done' : '' %>">
+        <span class="lesson-check"><%= l.complete ? '✅' : '▫️' %></span>
+        <% if (user) { %>
+          <a href="<%= l.href %>">Lesson <%= l.number %>: <%= l.title %></a>
+        <% } else { %>
+          Lesson <%= l.number %>: <%= l.title %>
+        <% } %>
+        <span class="hint lesson-short"><%= l.short %></span>
+      </li>
+    <% }) %>
+  </ul>
+  <p class="hint">Each lesson page has a "Show me the steps" panel if you want guidance — it's
+    collapsed by default so you can try it unaided first and only open it if you get stuck.</p>
 </div>
 
 <%- include('partials/foot') %>

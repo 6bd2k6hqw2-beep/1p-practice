@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS users (
   totp_secret TEXT,
   totp_enabled INTEGER NOT NULL DEFAULT 0,
   webauthn_user_id TEXT NOT NULL,
+  google_sub TEXT,
+  google_email TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -41,5 +43,16 @@ CREATE TABLE IF NOT EXISTS password_history (
   changed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `);
+
+// Lightweight migration: CREATE TABLE IF NOT EXISTS doesn't add new columns
+// to a users table that already existed before google_sub/google_email were
+// introduced, so add them by hand if a pre-existing database is missing them.
+const existingColumns = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
+if (!existingColumns.includes('google_sub')) {
+  db.exec('ALTER TABLE users ADD COLUMN google_sub TEXT');
+}
+if (!existingColumns.includes('google_email')) {
+  db.exec('ALTER TABLE users ADD COLUMN google_email TEXT');
+}
 
 module.exports = db;

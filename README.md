@@ -1,9 +1,10 @@
 # 1Password Practice App
 
-A throwaway account playground for practicing 1Password's browser extension:
-signing up, saving/changing a password, setting up TOTP 2FA (scan a QR code,
-enter a code on login), and saving/using a WebAuthn passkey. All accounts are
-local dummy data in a SQLite file — nothing is a real identity.
+A four-lesson, throwaway account playground for practicing 1Password's
+browser extension: creating a login, changing a password without losing
+sync with your password manager, setting up TOTP 2FA, and connecting a
+Google-style OIDC login. All accounts are local dummy data in a SQLite file
+— nothing is a real identity.
 
 ## How it works
 
@@ -16,6 +17,10 @@ local dummy data in a SQLite file — nothing is a real identity.
   WebAuthn ceremonies, so 1Password's "save a passkey" / "use a passkey"
   prompts show up genuinely. This is why it needs to run on a real public
   HTTPS domain rather than plain HTTP or an IP address.
+- Google login (Lesson 4) is a hand-rolled OAuth 2.0 / OIDC authorization
+  code flow (`src/googleAuth.js`) against Google's real endpoints — no extra
+  dependency, just `fetch` and a JWT payload decode. It's a genuinely
+  separate credential type from anything 1Password stores directly.
 - The container starts as root just long enough to create a `node` user at
   your requested `PUID`/`PGID` and `chown` the data folder, then drops
   privileges via `su-exec` before running the app — same pattern
@@ -78,22 +83,47 @@ you set as `PPRACTICE_APP_DATA_DIR`, so restarts don't wipe accounts. Anyone
 who wants a clean slate can just use the in-app "Delete this practice
 account" button — there's no shared data between different dummy accounts.
 
-## What to actually practice
+## The four lessons
 
-1. Sign up — let 1Password suggest and save a strong password.
-2. Set up 2FA — scan the QR code with 1Password, save the OTP field, confirm
-   the code.
-3. Log out and back in using the code 1Password generates.
-4. Add a passkey from the account page, then log out and use
-   "log in with a passkey" — no password needed.
-5. Change the password and watch for 1Password's "update login" banner —
-   click it to save the new password.
-6. **Practice the recovery too:** change the password again, but this time
-   dismiss or ignore 1Password's update prompt on purpose. Log out and try
-   to log back in — the autofilled (old) password will fail. The
-   change-password page has step-by-step instructions for manually editing
-   the saved 1Password entry to match, which is the fix you'd need in real
-   life if you ever miss that prompt.
+The app now walks through this as an actual tutorial rather than a loose
+checklist. Each lesson's page has a splash box (number, title, why it
+matters) with a collapsed "Show me the steps" panel — closed by default, so
+the natural first move is to just try it yourself and only open it if you
+get stuck. Progress is tracked automatically off real account data (no
+separate "progress" table to get out of sync) and shown on both the landing
+page and `/account`.
+
+1. **Create a login** (`/signup`) — sign up, let 1Password suggest and save
+   a strong password.
+2. **Change your password** (`/account/password`) — update it, then
+   confirm 1Password's "update login" prompt actually caught it. Also worth
+   doing deliberately wrong once: dismiss the prompt on purpose, log out,
+   and see the autofilled old password fail — the page has recovery steps
+   for exactly that.
+3. **Add two-factor authentication** (`/account/2fa/setup`) — scan the QR
+   code, confirm a live 6-digit code, then log out and back in using the
+   code 1Password generates.
+4. **Connect a Google login** (`/account/google`) — a different kind of
+   credential than anything 1Password stores directly. See "Google login
+   setup" below — this one needs a one-time setup step from you before it
+   works.
+
+Two more things worth trying that aren't numbered lessons but live on the
+same account page: saving a passkey and logging in with it instead of a
+password, and using "Delete this practice account" to start over.
+
+## Google login setup (for Lesson 4)
+
+This lesson needs its own OAuth credentials — nothing this app can generate
+for itself. Without them, the lesson page just shows these same
+instructions instead of a working button.
+
+1. In the [Google Cloud Console credentials page](https://console.cloud.google.com/apis/credentials),
+   create an OAuth 2.0 Client ID (application type: "Web application").
+2. Add this as an authorized redirect URI, substituting your actual domain:
+   `https://1ppractice.yourdomain.com/account/google/callback`
+3. Set `PPRACTICE_GOOGLE_CLIENT_ID` and `PPRACTICE_GOOGLE_CLIENT_SECRET` in
+   `.env` to the values Google gives you, then restart the container.
 
 ## Wiping accounts you're locked out of
 

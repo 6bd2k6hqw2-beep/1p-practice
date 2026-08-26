@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const crypto = require('crypto');
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 const bcrypt = require('bcryptjs');
@@ -15,6 +16,8 @@ const { isoBase64URL, generateUserID } = require('@simplewebauthn/server/helpers
 
 const db = require('./db');
 const { RP_NAME, RP_ID, ORIGIN } = require('./webauthnConfig');
+const lessons = require('./lessons');
+const googleAuth = require('./googleAuth');
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -76,12 +79,16 @@ function consumeFlash(req) {
 
 // ---------- landing ----------
 app.get('/', (req, res) => {
-  res.render('index', { user: req.session.userId ? getUserById(req.session.userId) : null });
+  const user = req.session.userId ? getUserById(req.session.userId) : null;
+  res.render('index', {
+    user,
+    lessons: lessons.lessonsWithStatus(user),
+  });
 });
 
 // ---------- signup ----------
 app.get('/signup', (req, res) => {
-  res.render('signup', { flash: consumeFlash(req) });
+  res.render('signup', { flash: consumeFlash(req), lesson: lessons.LESSONS[0] });
 });
 
 app.post('/signup', async (req, res) => {
@@ -159,12 +166,17 @@ app.post('/logout', (req, res) => {
 app.get('/account', requireAuth, (req, res) => {
   const user = getUserById(req.session.userId);
   const credentials = getCredentialsForUser(user.id);
-  res.render('account', { user, credentials, flash: consumeFlash(req) });
+  res.render('account', {
+    user,
+    credentials,
+    flash: consumeFlash(req),
+    lessons: lessons.lessonsWithStatus(user),
+  });
 });
 
 // ---------- change password ----------
 app.get('/account/password', requireAuth, (req, res) => {
-  res.render('change-password', { flash: consumeFlash(req) });
+  res.render('change-password', { flash: consumeFlash(req), lesson: lessons.LESSONS[1] });
 });
 
 app.post('/account/password', requireAuth, async (req, res) => {
@@ -196,7 +208,7 @@ app.get('/account/2fa/setup', requireAuth, async (req, res) => {
   req.session.pendingTotpSecret = secret;
   const otpauth = authenticator.keyuri(user.username, RP_NAME, secret);
   const qrDataUrl = await QRCode.toDataURL(otpauth);
-  res.render('2fa-setup', { secret, qrDataUrl, flash: consumeFlash(req) });
+  res.render('2fa-setup', { secret, qrDataUrl, flash: consumeFlash(req), lesson: lessons.LESSONS[2] });
 });
 
 app.post('/account/2fa/setup', requireAuth, (req, res) => {
@@ -325,6 +337,65 @@ app.post('/webauthn/login/verify', async (req, res) => {
     console.error(err);
     res.status(400).json({ verified: false, error: err.message });
   }
+});
+
+// ---------- Google OIDC (lesson 4: "connect a Google login") ----------
+app.get('/account/google', requireAuth, (req, res) => {
+  const user = getUserById(req.session.userId);
+  res.render('google-connect', {
+    user,
+    flash: consumeFlash(req),
+    lesson: lessons.LESSONS[3],
+    configured: googleAuth.isConfigured(),
+    redirectUri: `${ORIGIN}/account/google/callback`,
+  });
+});
+
+app.get('/account/google/connect', requireAuth, (req, res) => {
+  if (!googleAuth.isConfigured()) {
+    flash(
+      req,
+      'Google login isn\'t configured on this instance yet — set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env to try this lesson.',
+      'info'
+    );
+    return res.redirect('/account/google');
+  }
+  const state = isoBase64URL.fromBuffer(crypto.randomBytes(16));
+  req.session.googleOAuthState = state;
+  res.redirect(googleAuth.buildAuthUrl(state));
+});
+
+app.get('/account/google/callback', requireAuth, async (req, res) => {
+  const { code, state, error } = req.query;
+  if (error) {
+    flash(req, `Google login was cancelled or denied (${error}).`, 'info');
+    return res.redirect('/account/google');
+  }
+  if (!code || !state || state !== req.session.googleOAuthState) {
+    flash(req, 'That Google login attempt could not be verified. Try connecting again.', 'error');
+    return res.redirect('/account/google');
+  }
+  delete req.session.googleOAuthState;
+  try {
+    const tokens = await googleAuth.exchangeCodeForTokens(code);
+    const claims = googleAuth.decodeIdToken(tokens.id_token);
+    db.prepare('UPDATE users SET google_sub = ?, google_email = ? WHERE id = ?').run(
+      claims.sub,
+      claims.email || null,
+      req.session.userId
+    );
+    flash(req, `Connected to Google as ${claims.email || claims.sub}.`, 'success');
+  } catch (err) {
+    console.error(err);
+    flash(req, 'Could not complete Google login. Check the server logs for details.', 'error');
+  }
+  res.redirect('/account/google');
+});
+
+app.post('/account/google/disconnect', requireAuth, (req, res) => {
+  db.prepare('UPDATE users SET google_sub = NULL, google_email = NULL WHERE id = ?').run(req.session.userId);
+  flash(req, 'Disconnected the Google login.', 'info');
+  res.redirect('/account/google');
 });
 
 // ---------- reset / delete dummy account ----------

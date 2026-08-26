@@ -1,7 +1,16 @@
 <%- include('partials/head', { title: 'Create a dummy account' }) %>
 
 <div class="card card-narrow">
-  <h1>Create a dummy account</h1>
+  <%- include('partials/lesson-splash', { lesson: typeof lesson !== 'undefined' ? lesson : null, lessonSteps: `
+    <ol>
+      <li>Pick any username — it doesn't need to be real.</li>
+      <li>Click into the password field. 1Password should offer to suggest a
+        strong password right there instead of you making one up.</li>
+      <li>Submit the form, then look for 1Password's "Save Login" prompt and
+        confirm it.</li>
+    </ol>
+  ` }) %>
+  <% if (typeof lesson === 'undefined' || !lesson) { %><h1>Create a dummy account</h1><% } %>
   <%- include('partials/flash') %>
   <form method="POST" action="/signup" autocomplete="on">
     <label for="username">Username</label>
@@ -12,8 +21,6 @@
 
     <button class="btn btn-primary" type="submit">Create account</button>
   </form>
-  <p class="hint">Tip: click into the password field and let 1Password suggest a strong password,
-    then save the login when prompted after submitting.</p>
   <p><a href="/login">Already have a practice account? Log in</a></p>
 </div>
 

@@ -23,5 +23,9 @@ services:
       - SESSION_SECRET=${PPRACTICE_SESSION_SECRET:?set a random long string in .env}
       - NODE_ENV=production
       - PORT=3000 # DO NOT ALTER — internal container port; customise via PPRACTICE_PORT above
+      # Optional — only needed for Lesson 4 ("connect a Google login").
+      # Leave both unset in .env and that lesson just shows setup instructions.
+      - GOOGLE_CLIENT_ID=${PPRACTICE_GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${PPRACTICE_GOOGLE_CLIENT_SECRET:-}
     volumes:
       - $PPRACTICE_APP_DATA_DIR:/app/data # e.g. PPRACTICE_APP_DATA_DIR=/home/user/docker/appdata/1ppractice

@@ -1,7 +1,21 @@
 <%- include('partials/head', { title: 'Set up 2FA' }) %>
 
 <div class="card card-narrow">
-  <h1>Set up two-factor authentication</h1>
+  <%- include('partials/lesson-splash', { lesson: typeof lesson !== 'undefined' ? lesson : null, lessonSteps: `
+    <ol>
+      <li>In 1Password, open this saved login and click into (or add) its
+        one-time password field.</li>
+      <li>Use 1Password's option to scan a QR code, and point it at the code
+        on this page — or paste the setup key manually if scanning isn't an
+        option.</li>
+      <li>1Password will start generating a 6-digit code that changes every
+        30 seconds. Copy the current one into the box below.</li>
+      <li>If it says the code doesn't match, the two most common causes are
+        a stale/expired code (just copy the current one again) or a typo —
+        it's not usually a sign anything's broken.</li>
+    </ol>
+  ` }) %>
+  <% if (typeof lesson === 'undefined' || !lesson) { %><h1>Set up two-factor authentication</h1><% } %>
   <%- include('partials/flash') %>
   <p>Open the login in 1Password, click into the one-time password field, and scan this QR code
     (or paste the setup key manually).</p>
